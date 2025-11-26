@@ -4,6 +4,17 @@ This project is a **Node.js Express API** that remotely controls **MediaMTX runn
 It establishes an SSH connection to EC2, starts MediaMTX in the background, triggers on-demand RTSP → RTMP → HLS transcoding, and exposes final HLS URLs for frontend clients.
 
 ---
+#Deployment 
+https://videostreamingfrontend-ojyp-lvplosoxl-soumya-rouls-projects.vercel.app
+
+---
+#Deployment errors ans issues
+Mixed Content: The page at 'https://your-app.render.com' was loaded over HTTPS, 
+but requested an insecure element 'http://3.16.91.248:8888/stream1/index.m3u8'. 
+This request has been blocked; the content must be served over HTTPS.
+"Works locally but not deployed?" This is a common HTTPS mixed content issue when deploying to platforms like Render/Vercel.
+The Problem: Browsers block HTTP video streams on HTTPS pages for security.
+However it works fine and video loads locally
 
 ## 🚀 Features
 
