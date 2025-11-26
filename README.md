@@ -1,75 +1,132 @@
-# React + TypeScript + Vite
+# 🎥 MediaMTX Streaming Controller (Node.js + AWS EC2)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is a **Node.js Express API** that remotely controls **MediaMTX running on an AWS EC2 instance**.  
+It establishes an SSH connection to EC2, starts MediaMTX in the background, triggers on-demand RTSP → RTMP → HLS transcoding, and exposes final HLS URLs for frontend clients.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Features
 
-## React Compiler
+- 🔐 Connect to EC2 using SSH & private key  
+- ▶️ Start MediaMTX remotely via API  
+- 📡 Auto-spawn FFmpeg processes using `runOnDemand`  
+- 🎬 Convert RTSP → RTMP → HLS  
+- 🌍 Serve livestream over public IP (HLS)  
+- ⚙️ Clean, scalable MediaMTX configuration  
+- 📁 Organized project structure  
+- 🧪 Tested with Postman & React frontend  
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+---
 
-Note: This will impact Vite dev & build performances.
+## 📂 Project Structure
 
-## Expanding the ESLint configuration
+root
+│── server.js # Express API
+│── ssh.js # SSH helper (node-ssh)
+│── mediamtx.yml # MediaMTX configuration on EC2
+│── package.json
+└── README.md
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+yaml
+Copy code
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🔧 Requirements
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Node.js 16+
+- AWS EC2 instance (Amazon Linux 2023 / Ubuntu)
+- MediaMTX installed on EC2 at `/usr/local/bin/mediamtx`
+- FFmpeg installed on EC2
+- Open security group ports:
+  - **22** (SSH)
+  - **1935** (RTMP)
+  - **8554** (RTSP)
+  - **8888** (HLS)
+  - Your Express API port (5000)
+
+---
+
+## 📡 MediaMTX Configuration (RTSP → RTMP → HLS)
+
+The server automatically pulls from:
+
+rtsp://13.60.76.79:8554/live3
+
+bash
+Copy code
+
+Then pushes to local RTMP:
+
+rtmp://localhost:1935/stream1
+
+yaml
+Copy code
+
+And MediaMTX produces HLS at:
+
+http://<ec2-ip>:8888/stream1/index.m3u8
+
+yaml
+Copy code
+
+Example `mediamtx.yml` used in this project:
+
+```yaml
+rtmp: yes
+rtmpAddress: :1935
+
+hls: yes
+hlsAddress: :8888
+hlsSegmentDuration: 2s
+hlsSegmentCount: 3
+hlsAllowOrigins: ["*"]
+
+paths:
+  stream1:
+    runOnDemand: >
+      /usr/local/bin/ffmpeg -rtsp_transport tcp
+      -i rtsp://13.60.76.79:8554/live3
+      -c copy -f flv rtmp://localhost:1935/stream1
+    runOnDemandRestart: yes
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+🖥️ API Endpoints
+1️⃣ Start MediaMTX on EC2
+bash
+Copy code
+POST http://localhost:5000/start-mt
+Response:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+json
+Copy code
+{
+  "status": "MediaMTX started",
+  "hls": "http://<ec2-ip>:8888/stream1/index.m3u8"
+}
+⚙️ Environment Variables
+Create .env:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+ini
+Copy code
+EC2_HOST=3.16.91.248
+EC2_USERNAME=ec2-user
+EC2_PRIVATE_KEY=./mediamtx-key.pem
+MEDIAMTX_PATH=/usr/local/bin/mediamtx
+MEDIAMTX_CONFIG=/home/ec2-user/mediamtx.yml
+▶️ Running the Server (with Nodemon)
+Install nodemon:
+
+css
+Copy code
+npm i -g nodemon
+Start the API:
+
+nginx
+Copy code
+nodemon server.js
+API will run at:
+
+arduino
+Copy code
+http://localhost:5000
