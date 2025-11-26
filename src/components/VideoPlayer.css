@@ -1,0 +1,79 @@
+.video-player-container {
+    position: relative;
+    min-height: 300px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .video-title {
+    text-align: center;
+    margin: 0;
+    padding: 1rem;
+    background: #2c3e50;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+  
+  .video-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: #6c757d;
+  }
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .video-error {
+    text-align: center;
+    padding: 2rem;
+    color: #dc3545;
+  }
+  
+  .retry-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 1rem 0;
+    font-weight: 600;
+  }
+  
+  .retry-btn:hover {
+    background: #c82333;
+  }
+  
+  .error-url {
+    font-size: 0.8rem;
+    color: #6c757d;
+    word-break: break-all;
+    margin-top: 1rem;
+  }
+  
+  /* Video.js customizations */
+  .video-js {
+    width: 100%;
+    height: 400px;
+  }
+  
+  .video-js .vjs-control-bar {
+    background: rgba(43, 51, 63, 0.9);
+  }
